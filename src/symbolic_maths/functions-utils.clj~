@@ -1,0 +1,28 @@
+(ns symbolic-maths.functions-utils)
+
+;; '** for operator ^ (somehow it is forbiden...)
+
+(defn contains-variable? [f x]
+  "true if f is a function of x"
+  (let [cont? #(contains-variable? % x)]
+    (cond (number? f) false
+	  (symbol? f) (= f x)
+	  (coll? f) (some cont? f)
+	  :default false)))
+	
+(defn polynom? [f var]
+  "true if f is a polynom, false otherwise"
+  (let [pol? #(polynom? % var)]
+  (cond ;;(empty? f) true
+	(number? f) true
+	(symbol? f) true
+	(coll? f)
+	(let [a (first f)]
+	  (cond (= '/ a) (and (pol? (second f)) (not (contains-variable? (second (rest f)) var)))
+		(= a '**) (or (and (pol? (second f)) (int (nth 2 f)) (> (nth 2 f) 0))
+			true);;still incomplete. need to avoid case like (** number (g var))
+		(some #(= % a) '(+ - *)) (every? pol? (rest f))
+		:default false))
+	
+	
+	:default false)))

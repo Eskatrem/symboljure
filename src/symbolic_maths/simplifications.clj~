@@ -1,0 +1,58 @@
+(ns symbolic-maths.core)
+
+(defn product? [x]
+  (or (not (list? x)) (= (first x) '*)))
+
+(defn simplify-product [lst]
+  (cond (not (seq? lst)) lst
+	(is-in? lst 0 =) 0
+	:default
+	(let [members (rest lst)
+	      split (group-by number? members)
+	      numbers (split true)
+	      value (apply * numbers)
+	      non-nums (seq (split false))]
+	  (if (= 1 value)
+	    (if (= 1 (count non-nums))
+	      (first non-nums) (conj non-nums '*))
+	    (conj (conj non-nums value) '*)))))
+
+(defn simplify-sum [lst]
+  ;;rewrite algo here using ===...
+  (let [op (first lst)
+	operand (eval op)
+	members (rest lst)
+	split (group-by number? members)
+	numbers (split true)
+	symbols (map identity (split false))
+	number (apply operand numbers)
+	unique-symbols (get-unique-counts symbols ===) ;; shouldnt be === but a more compicated function
+	factors (map #(list '* (% :count) (% :unique)) unique-symbols)
+	result (conj factors  number '+)
+	]
+    (if (not (= op '+)) nil ;;op should be +
+	result)))
+
+
+(defn simplify [expr]
+  (println (class expr))
+  (println expr)
+  (if (coll?  expr ) (do (println (list? expr)) (println (operator? (first expr))) (println (map number? (rest expr)))) (println "not list"))
+  (cond (or (symbol? expr) (number? expr)) expr
+	;;(and (list? expr) (= 2 (count expr)) (operator? (first expr)) (number? (second expr))) (eval expr)
+	(and (seq? expr) (operator? (first expr)) (reduce #(and %1 %2) (map number? (rest expr)))) (do (println "pure calculation...") (eval expr))
+	(seq? expr) (do ;;(println expr)
+			 (loop [unsimplified expr
+				simplified (conj (map simplify (rest expr)) (first expr))]
+			   (println (class simplified))
+			   ;;(println unsimplified)
+			    (println (str "simplified: " simplified))
+			    (println (str "unsimplified: " unsimplified))
+			   (if (= unsimplified simplified)
+			     (if (= (first simplified) '*) (simplify-product simplified) simplified)
+			     ;;(do (println "cant simplify anymore") simplified)
+			     (do ;;(println (str "simplified: " simplified))
+			       ;;(println (str "unsimplified: " unsimplified))
+			       (recur simplified
+				      (conj (map simplify (rest simplified)) (first simplified)))))))
+	:default expr))
