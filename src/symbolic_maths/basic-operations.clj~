@@ -1,6 +1,0 @@
-(ns symbolic-maths.basic-operations)
-
-(defn expand [f]
-  (cond (symbol? f) f
-	(number? f) f
-	(vector? f) (vec (map expand f))

@@ -1,9 +1,0 @@
-(ns symbolic-maths.core
-  (:use [clojure.string :only (split join blank?)]))
-
-;;(def symbols '( + - * / ^))
-
-(defn higher-priority
-  "true if op1 has a greater or equal priority as op2, false otherwise"
-  [op1 op2]
-  )
